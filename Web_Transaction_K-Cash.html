@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction K-Cash | Management System</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Core jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- XLSX for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modern Custom CSS -->
+    <style>
+        :root {
+            --primary: #4338ca;
+            --primary-hover: #3730a3;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 20px;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .container {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* Modern Header Design */
+        .header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+            padding: 24px 32px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.15);
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .header p {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* Controls Area */
+        .controls {
+            padding: 28px 32px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-main);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.925rem;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+        }
+
+        input[readonly] {
+            background-color: #f1f5f9 !important;
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        /* File Toolbar UI */
+        .file-input-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .file-input-display {
+            flex: 1;
+            min-width: 180px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: #f8fafc;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .file-input-display:hover {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .file-action-btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-edit { background: #f1f5f9; color: #475569; border: 1px solid var(--border); }
+        .btn-edit:hover { background: #e2e8f0; }
+
+        .btn-select { background: #e0e7ff; color: var(--primary); }
+        .btn-select:hover { background: #c7d2fe; }
+
+        .btn-clear { background: #fee2e2; color: var(--danger); }
+        .btn-clear:hover { background: #fca5a5; color: #991b1b; }
+
+        /* General Buttons */
+        .btn {
+            padding: 11px 20px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.925rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(67, 56, 202, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(67, 56, 202, 0.3);
+        }
+
+        .btn-load {
+            grid-column: span 1;
+            height: 42px;
+            margin-top: auto;
+        }
+
+        .btn-secondary { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+
+        /* Main Display Area */
+        .display-area {
+            padding: 32px;
+            background: #ffffff;
+            min-height: 400px;
+        }
+
+        /* Modern Data Table */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            color: #475569;
+            padding: 12px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        .data-table tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Footer Export Controls */
+        .export-controls {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Search Suggestion Dropdown */
+        .search-results {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            max-height: 220px;
+            overflow-y: auto;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+
+        .search-result-item:hover {
+            background-color: #f1f5f9;
+            color: var(--primary);
+        }
+
+        /* Spinner & Utility */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 28px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-content h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .modal-content p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .modal-btn-confirm { background: var(--primary); color: white; }
+        .modal-btn-cancel { background: #f1f5f9; color: var(--text-main); margin-top: 6px;}
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 16px; align-items: flex-start; }
+            .control-grid { grid-template-columns: 1fr; }
+            .export-controls { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Application Container -->
+    <div id="mainApp" class="container" style="display: block;">
+        
+        <!-- Header Section -->
+        <div class="header">
+            <div class="header-brand">
+                <div class="header-icon"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <h1>Transaction_K-Cash</h1>
+                    <p>ระบบโหลดและจัดการข้อมูลรายการอัตโนมัติ</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="controls">
+            <div class="control-grid">
+                <!-- Select File Toolbar -->
+                <div class="input-group full-width" id="fileInputGroup">
+                    <label for="fileInput"><i class="fas fa-file-excel"></i> เลือกไฟล์ Excel ข้อมูล:</label>
+                    <div class="file-input-container">
+                        <div id="fileInputDisplay" class="file-input-display" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i> ไม่ได้เลือกไฟล์
+                        </div>
+                        <button id="editFileBtn" class="file-action-btn btn-edit" onclick="showFileEditModal()"><i class="fas fa-lock"></i> แก้ไข</button>
+                        <button type="button" class="file-action-btn btn-select" onclick="selectExcelWithFileSystemAPI()"><i class="fas fa-folder-open"></i> เลือก/จำไฟล์</button>
+                        <button type="button" class="file-action-btn btn-clear" onclick="clearSavedExcelFile()"><i class="fas fa-trash-alt"></i> ล้าง</button>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;" onchange="handleFileSelect(this)">
+                    </div>
+                    <div id="savedFileInfo" style="margin-top:6px; font-size:12px; color:var(--text-muted);"></div>
+                </div>
+
+                <!-- Input Elements Grid -->
+                <div class="input-group">
+                    <label for="employeeSearch"><i class="fas fa-search"></i> ค้นหา ID Branch :</label>
+                    <input type="text" id="employeeSearch" placeholder="ระบุ ID Branch (เช่น AH, QQ หรือตัวเลข)" value="" maxlength="4">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+
+                <div class="input-group">
+                    <label for="recordCount"><i class="fas fa-list-ol"></i> จำนวนรายการ:</label>
+                    <input type="number" id="recordCount" placeholder="กรอกจำนวน" min="1" max="1000" value="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="startDateDisplay"><i class="fas fa-calendar-alt"></i> วันที่เริ่มต้น:</label>
+                    <input type="text" id="startDateDisplay" placeholder="วันที่เริ่มต้น" readonly>
+                </div>
+
+                <div class="input-group">
+                    <label for="endDateDisplay"><i class="fas fa-calendar-check"></i> วันที่สิ้นสุด:</label>
+                    <input type="text" id="endDateDisplay" placeholder="วันที่สิ้นสุด" readonly>
+                </div>
+
+                <button class="btn btn-primary btn-load" onclick="loadData()"><i class="fas fa-rocket"></i> Load Data</button>
+            </div>
+        </div>
+
+        <!-- Data Output Area -->
+        <div class="display-area">
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p style="color:var(--text-muted); font-size:0.9rem;">กำลังประมวลผลข้อมูล กรุณารอสักครู่...</p>
+            </div>
+
+            <div class="error" id="errorMessage"></div>
+
+            <div id="dataDisplay">
+                <div style="text-align:center; padding: 40px 20px; color: var(--text-muted);">
+                    <i class="fas fa-inbox" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5;"></i>
+                    <p>กรุณาเลือกไฟล์ Excel และเลือก ID Branch แล้วกด <strong>Load Data</strong> เพื่อแสดงตารางข้อมูล</p>
+                </div>
+            </div>
+
+            <!-- Export Buttons Toolbar -->
+            <div class="export-controls" id="exportControls" style="display: none;">
+                <span style="font-size:0.9rem; font-weight: 500; color: var(--text-muted);"><i class="fas fa-download"></i> เครื่องมือส่งออกข้อมูล:</span>
+                <div class="export-buttons">
+                    <button class="btn btn-secondary" onclick="exportToPDF()"><i class="fas fa-file-pdf" style="color:#ef4444;"></i> Export PDF</button>
+                    <button class="btn btn-success" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Data and State Variables
+        let currentData = [];
+        let excelData = [];
+        let excelHeaders = [];
+        let allEmployees = [];
+        let selectedEmployee = '';
+        let selectedFile = null;
+        let savedFileName = localStorage.getItem('kCashExcelFileName') || '';
+        let savedFilePath = localStorage.getItem('kCashExcelFilePath') || '';
+        let excelFileHandle = null;
+        const FILE_HANDLE_DB = 'KCashFileHandleDB';
+        const FILE_HANDLE_STORE = 'handles';
+
+        window.addEventListener('load', () => {
+            document.getElementById('mainApp').style.display = 'block';
+            document.title = 'Transaction K-Cash';
+            updateSavedFileInfo();
+
+            if (savedFileName) {
+                document.getElementById('fileInputDisplay').innerHTML = `<i class="fas fa-file-excel" style="color:#10b981;"></i> ${savedFileName}`;
+            }
+
+            if ('showOpenFilePicker' in window && savedFileName) {
+                restoreSavedExcelHandle(false);
+            }
+        });
+
+        // --- File Edit Modal System ---
+        function showFileEditModal() {
+            document.getElementById('fileEditPassword').value = '';
+            document.getElementById('fileEditMessage').style.display = 'none';
+            showModal('fileEditModal');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        document.getElementById('confirmFileEditBtn').addEventListener('click', function() {
+            const password = document.getElementById('fileEditPassword').value;
+            if (password === '1234') {
+                hideModal('fileEditModal');
+                selectExcelWithFileSystemAPI();
+            } else {
+                document.getElementById('fileEditMessage').textContent = 'รหัสผ่านไม่ถูกต้อง';
+                document.getElementById('fileEditMessage').className = 'message-display';
+                document.getElementById('fileEditMessage').style.color = 'var(--danger)';
+                document.getElementById('fileEditMessage').style.display = 'block';
+            }
+        });
+
+        document.getElementById('cancelFileEditBtn').addEventListener('click', function() {
+            hideModal('fileEditModal');
+        });
+
+        document.getElementById('fileEditPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('confirmFileEditBtn').click();
+            }
+        });
+
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+
+                savedFileName = selectedFile.name;
+                savedFilePath = selectedFile.webkitRelativePath || selectedFile.name;
+
+                localStorage.setItem('kCashExcelFileName', savedFileName);
+                localStorage.setItem('kCashExcelFilePath', savedFilePath);
+
+                document.getElementById('fileInputDisplay').innerHTML = `<i class="fas fa-file-excel" style="color:#10b981;"></i> ${savedFileName}`;
+                updateSavedFileInfo();
+
+                excelData = [];
+                allEmployees = [];
+            }
+        }
+
+        function updateSavedFileInfo() {
+            const info = document.getElementById('savedFileInfo');
+            if (!info) return;
+
+            if (savedFileName) {
+                const apiSupported = 'showOpenFilePicker' in window;
+                info.innerHTML = `💾 ไฟล์ที่จำไว้: <strong>${escapeHtml(savedFileName)}</strong>
+                    ${excelFileHandle ? '<span style="color:var(--success);"> ✓ พร้อมใช้งาน</span>' :
+                      apiSupported ? '<span style="color:var(--text-muted);"> — กด Load Data เพื่อเชื่อมต่อไฟล์เดิม</span>' :
+                      '<span style="color:var(--danger);"> — Browser นี้ไม่รองรับ File System Access API</span>'}`;
+            } else {
+                info.textContent = 'ยังไม่มีไฟล์ที่บันทึกไว้';
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function idbOpen() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(FILE_HANDLE_DB, 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(FILE_HANDLE_STORE)) {
+                        db.createObjectStore(FILE_HANDLE_STORE);
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function saveFileHandle(handle) {
+            const db = await idbOpen();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+                tx.objectStore(FILE_HANDLE_STORE).put(handle, 'excelFileHandle');
+                tx.oncomplete = () => {
+                    db.close();
+                    resolve();
+                };
+                tx.onerror = () => {
+                    db.close();
+                    reject(tx.error);
+                };
+            });
+        }
+
+        async function getSavedFileHandle() {
+            const db = await idbOpen();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(FILE_HANDLE_STORE, 'readonly');
+                const request = tx.objectStore(FILE_HANDLE_STORE).get('excelFileHandle');
+                request.onsuccess = () => {
+                    db.close();
+                    resolve(request.result || null);
+                };
+                request.onerror = () => {
+                    db.close();
+                    reject(request.error);
+                };
+            });
+        }
+
+        async function deleteSavedFileHandle() {
+            try {
+                const db = await idbOpen();
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+                    tx.objectStore(FILE_HANDLE_STORE).delete('excelFileHandle');
+                    tx.oncomplete = resolve;
+                    tx.onerror = () => reject(tx.error);
+                });
+                db.close();
+            } catch (error) {
+                console.warn('ลบ File Handle ไม่สำเร็จ:', error);
+            }
+        }
+
+        async function verifyFilePermission(handle, readWrite = false) {
+            if (!handle) return false;
+
+            const options = { mode: readWrite ? 'readwrite' : 'read' };
+
+            try {
+                if ((await handle.queryPermission(options)) === 'granted') {
+                    return true;
+                }
+
+                if ((await handle.requestPermission(options)) === 'granted') {
+                    return true;
+                }
+            } catch (error) {
+                console.warn('ตรวจสอบ Permission ไม่สำเร็จ:', error);
+            }
+
+            return false;
+        }
+
+        async function selectExcelWithFileSystemAPI() {
+            if (!('showOpenFilePicker' in window)) {
+                showError('Browser นี้ไม่รองรับ File System Access API กรุณาใช้ Google Chrome หรือ Microsoft Edge รุ่นปัจจุบัน');
+                return;
+            }
+
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    multiple: false,
+                    types: [{
+                        description: 'Excel Files',
+                        accept: {
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+                            'application/vnd.ms-excel': ['.xls']
+                        }
+                    }],
+                    excludeAcceptAllOption: false
+                });
+
+                if (!handle) return;
+
+                excelFileHandle = handle;
+
+                const file = await handle.getFile();
+                selectedFile = file;
+                savedFileName = file.name;
+                savedFilePath = file.name;
+
+                localStorage.setItem('kCashExcelFileName', savedFileName);
+                localStorage.setItem('kCashExcelFilePath', savedFilePath);
+                await saveFileHandle(handle);
+
+                document.getElementById('fileInputDisplay').innerHTML = `<i class="fas fa-file-excel" style="color:#10b981;"></i> ${savedFileName}`;
+                updateSavedFileInfo();
+
+                excelData = [];
+                allEmployees = [];
+
+                hideError();
+                await loadExcelData();
+
+            } catch (error) {
+                if (error && error.name === 'AbortError') return;
+
+                console.error('File System Access error:', error);
+                showError('ไม่สามารถเลือกไฟล์ Excel ได้: ' + error.message);
+            }
+        }
+
+        async function restoreSavedExcelHandle(showPermissionPrompt = false) {
+            if (!('showOpenFilePicker' in window)) return false;
+
+            try {
+                const handle = await getSavedFileHandle();
+                if (!handle) return false;
+
+                let permission = await handle.queryPermission({ mode: 'read' });
+
+                if (permission !== 'granted' && showPermissionPrompt) {
+                    permission = await handle.requestPermission({ mode: 'read' });
+                }
+
+                if (permission !== 'granted') {
+                    excelFileHandle = handle;
+                    updateSavedFileInfo();
+                    return false;
+                }
+
+                const file = await handle.getFile();
+
+                const lower = file.name.toLowerCase();
+                if (!lower.endsWith('.xlsx') && !lower.endsWith('.xls')) {
+                    throw new Error('ไฟล์ที่จำไว้ไม่ใช่ไฟล์ Excel');
+                }
+
+                excelFileHandle = handle;
+                selectedFile = file;
+                savedFileName = file.name;
+                savedFilePath = file.name;
+
+                localStorage.setItem('kCashExcelFileName', savedFileName);
+                localStorage.setItem('kCashExcelFilePath', savedFilePath);
+
+                document.getElementById('fileInputDisplay').innerHTML = `<i class="fas fa-file-excel" style="color:#10b981;"></i> ${savedFileName}`;
+                updateSavedFileInfo();
+
+                return true;
+
+            } catch (error) {
+                console.warn('ไม่สามารถเรียกไฟล์ที่จำไว้:', error);
+                excelFileHandle = null;
+                selectedFile = null;
+                updateSavedFileInfo();
+                return false;
+            }
+        }
+
+        async function clearSavedExcelFile() {
+            await deleteSavedFileHandle();
+
+            localStorage.removeItem('kCashExcelFileName');
+            localStorage.removeItem('kCashExcelFilePath');
+
+            savedFileName = '';
+            savedFilePath = '';
+            selectedFile = null;
+            excelFileHandle = null;
+            excelData = [];
+            allEmployees = [];
+
+            document.getElementById('fileInputDisplay').innerHTML = '<i class="fas fa-cloud-upload-alt"></i> ไม่ได้เลือกไฟล์';
+            document.getElementById('startDateDisplay').value = '';
+            document.getElementById('endDateDisplay').value = '';
+            updateSavedFileInfo();
+        }
+
+        // --- Main App Logic ---
+        async function loadExcelData() {
+            try {
+                if (!selectedFile && excelFileHandle) {
+                    const hasPermission = await verifyFilePermission(excelFileHandle, false);
+                    if (hasPermission) {
+                        selectedFile = await excelFileHandle.getFile();
+                    }
+                }
+
+                if (!selectedFile && savedFileName && 'showOpenFilePicker' in window) {
+                    const restored = await restoreSavedExcelHandle(false);
+
+                    if (!restored) {
+                        throw new Error(
+                            `ระบบจำไฟล์ "${savedFileName}" ไว้แล้ว แต่ยังไม่ได้รับสิทธิ์อ่านไฟล์ ` +
+                            `กรุณากด "📂 เลือก/จำไฟล์" หรือ "แก้ไข" แล้วเลือกไฟล์เดิมอีกครั้ง`
+                        );
+                    }
+                }
+
+                if (!selectedFile) {
+                    throw new Error('กรุณาเลือกไฟล์ Excel');
+                }
+
+                const data = await selectedFile.arrayBuffer();
+                const workbook = window.XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = window.XLSX.utils.sheet_to_json(worksheet, { range: 1 });
+
+                if (jsonData.length === 0) {
+                    throw new Error('ไฟล์ Excel ไม่มีข้อมูล');
+                }
+
+                excelHeaders = Object.keys(jsonData[0]);
+
+                excelData = jsonData.map((row, index) => ({
+                    rowIndex: index + 1,
+                    ...row
+                }));
+
+                const col6Header = excelHeaders[5];
+
+                if (col6Header) {
+                    const prefixes = excelData
+                        .map(row => {
+                            const val = row[col6Header];
+                            return val != null ? val.toString().trim().toUpperCase().substring(0, 4) : '';
+                        })
+                        .filter(v => v !== '');
+                    allEmployees = [...new Set(prefixes)];
+                }
+
+                if (excelFileHandle) {
+                    savedFileName = selectedFile.name;
+                    localStorage.setItem('kCashExcelFileName', savedFileName);
+                    updateSavedFileInfo();
+                }
+
+                console.log('Excel data loaded:', excelData.length, 'records');
+                return excelData;
+
+            } catch (error) {
+                console.error('Error loading Excel file:', error);
+                throw error;
+            }
+        }
+
+        function searchEmployees(query) {
+            if (!query || query.trim().length < 1) {
+                hideSearchResults();
+                return;
+            }
+
+            const cleanQuery = query.trim().toUpperCase().substring(0, 4);
+
+            const filteredEmployees = allEmployees.filter(emp =>
+                emp && emp.toString().trim().toUpperCase().substring(0, 4).startsWith(cleanQuery)
+            );
+
+            displaySearchResults(filteredEmployees);
+        }
+
+        document.getElementById('employeeSearch').addEventListener('input', function(event) {
+            searchEmployees(event.target.value);
+        });
+
+        function displaySearchResults(employees) {
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (employees.length === 0) {
+                hideSearchResults();
+                return;
+            }
+
+            let html = '';
+            employees.slice(0, 10).forEach(emp => {
+                html += `<div class="search-result-item" onclick="selectEmployee('${emp}')">${emp}</div>`;
+            });
+
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function selectEmployee(employeeName) {
+            document.getElementById('employeeSearch').value = employeeName;
+            selectedEmployee = employeeName;
+            hideSearchResults();
+        }
+
+        function hideSearchResults() {
+            document.getElementById('searchResults').style.display = 'none';
+        }
+
+        async function loadData() {
+            const searchQuery = document.getElementById('employeeSearch').value.trim();
+            const count = parseInt(document.getElementById('recordCount').value);
+
+            if (!count || count <= 0) {
+                showError('กรุณากรอกจำนวนรายการที่ถูกต้อง');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                if (excelData.length === 0) {
+                    await loadExcelData();
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // ดึงวันที่เริ่มต้นและสิ้นสุดจากขอบเขตข้อมูลทั้งหมด (excelData)
+                const col1Header = excelHeaders[0];
+                if (col1Header && excelData.length > 0) {
+                    const firstRowVal = excelData[0][col1Header];
+                    const lastRowVal = excelData[excelData.length - 1][col1Header];
+                    document.getElementById('startDateDisplay').value = firstRowVal != null ? firstRowVal : '';
+                    document.getElementById('endDateDisplay').value = lastRowVal != null ? lastRowVal : '';
+                }
+
+                let filteredData = excelData;
+
+                if (searchQuery) {
+                    const cleanSearchQuery = searchQuery.trim().toUpperCase().substring(0, 4);
+                    const col6Header = excelHeaders[5];
+                    
+                    if (!col6Header) {
+                        showError('ไม่พบคอลัมน์ที่ 6 ในไฟล์ Excel');
+                        showLoading(false);
+                        return;
+                    }
+
+                    filteredData = excelData.filter(row => {
+                        if (row[col6Header] != null) {
+                            const colValue = row[col6Header].toString().trim().toUpperCase().substring(0, 4);
+                            return colValue === cleanSearchQuery || colValue.startsWith(cleanSearchQuery);
+                        }
+                        return false;
+                    });
+                }
+
+                const dataFromBottom = filteredData.slice(-count);
+                currentData = dataFromBottom;
+
+                if (currentData.length === 0) {
+                    showError('ไม่พบข้อมูลที่ตรงกับเงื่อนไข ID Branch ในคอลัมน์ที่ 6');
+                    return;
+                }
+
+                displayData(currentData);
+                document.getElementById('exportControls').style.display = 'flex';
+
+            } catch (error) {
+                console.error('Load data error:', error);
+                showError('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayData(data) {
+            const displayArea = document.getElementById('dataDisplay');
+
+            if (data.length === 0) {
+                displayArea.innerHTML = '<p>ไม่พบข้อมูล</p>';
+                return;
+            }
+
+            const columns = excelHeaders;
+
+            let html = `
+                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:16px;"><i class="fas fa-table" style="color:var(--primary);"></i> แสดงข้อมูลล่าสุด (${data.length} รายการ)</h3>
+                <div class="table-responsive">
+                <table id="dataTableForExport" class="data-table">
+                    <thead>
+                        <tr>
+            `;
+
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+
+            html += `
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach((row, index) => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+
+                    if (typeof value === 'number') {
+                        const colName = col.toLowerCase();
+                        if (colName.includes('card') || colName.includes('number') || colName.includes('id') || colName.includes('branch')) {
+                            value = String(value);
+                        } else {
+                            value = value.toLocaleString('th-TH');
+                        }
+                    } else if (value == null) {
+                        value = '';
+                    } else {
+                        value = String(value);
+                        const colName = col.toLowerCase();
+                        if (colName.includes('card') || colName.includes('number')) {
+                            value = value.replace(/,/g, '');
+                        }
+                    }
+
+                    html += `<td title="${value}">${value}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += `</tbody></table></div>`;
+            displayArea.innerHTML = html;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.innerHTML = message;
+            errorElement.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        async function exportToPDF() {
+            if (currentData.length === 0) {
+                showError('ไม่มีข้อมูลสำหรับ Export');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            // The div containing the table and the title will be cloned and used for PDF generation.
+            // We will remove the h3 element before generating the PDF.
+            const tableContainer = document.getElementById('dataDisplay').cloneNode(true);
+            const titleElement = tableContainer.querySelector('h3');
+            if (titleElement) {
+                titleElement.remove();
+            }
+
+            const loadingMessage = document.createElement('div');
+            loadingMessage.textContent = 'กำลังสร้างไฟล์ PDF... กรุณารอสักครู่';
+            loadingMessage.style.cssText =
+                'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);' +
+                'background: rgba(255, 255, 255, 0.95); padding: 20px 30px; border-radius: 10px;' +
+                'box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 2000; font-weight: bold; font-family: Prompt;';
+            document.body.appendChild(loadingMessage);
+
+            let clone;
+
+            try {
+                clone = tableContainer; // Use the modified tableContainer
+                clone.classList.add('temp-table-for-export');
+                clone.style.fontSize = '10px';
+                document.body.appendChild(clone);
+
+                const canvas = await html2canvas(clone, {
+                    scale: 1.5,
+                    useCORS: true,
+                });
+
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const margin = 5;
+                const imgWidth = 287;
+                const pageHeight = 210;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                let heightLeft = imgHeight;
+                let position = margin;
+
+                doc.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+                heightLeft -= pageHeight - margin * 2;
+
+                while (heightLeft > 0) {
+                    doc.addPage();
+                    position = margin - (imgHeight - heightLeft);
+                    doc.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight - margin * 2;
+                }
+
+                doc.save('data_export.pdf');
+            } catch (error) {
+                console.error('Error exporting to PDF:', error);
+                showError('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF: ' + error.message);
+            } finally {
+                if (clone && clone.parentNode) clone.remove();
+                if (loadingMessage.parentNode) loadingMessage.remove();
+            }
+        }
+
+        function exportToExcel() {
+            if (currentData.length === 0) {
+                showError('ไม่มีข้อมูลสำหรับ Export');
+                return;
+            }
+
+            const dataForExport = currentData.map(item => {
+                const newRow = {};
+                excelHeaders.forEach(header => {
+                    newRow[header] = item[header];
+                });
+                return newRow;
+            });
+
+            const worksheet = window.XLSX.utils.json_to_sheet(dataForExport);
+            const range = window.XLSX.utils.decode_range(worksheet['!ref']);
+            
+            let col4Name = null;
+            let col6Name = null;
+            let col8Name = null;
+            
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const address = window.XLSX.utils.encode_cell({r: 0, c: C});
+                if (worksheet[address]) {
+                    if (C === 3) col4Name = worksheet[address].v;
+                    if (C === 5) col6Name = worksheet[address].v;
+                    if (C === 7) col8Name = worksheet[address].v;
+                }
+            }
+            
+            for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                if (col4Name) {
+                    const address4 = window.XLSX.utils.encode_cell({r: R, c: 3});
+                    if (worksheet[address4]) {
+                        worksheet[address4].t = 's';
+                        worksheet[address4].v = String(worksheet[address4].v);
+                    }
+                }
+
+                if (col6Name) {
+                    const address6 = window.XLSX.utils.encode_cell({r: R, c: 5});
+                    if (worksheet[address6] && typeof worksheet[address6].v === 'number') {
+                        worksheet[address6].v = worksheet[address6].v.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        worksheet[address6].t = 's';
+                    }
+                }
+
+                if (col8Name) {
+                    const address8 = window.XLSX.utils.encode_cell({r: R, c: 7});
+                    if (worksheet[address8] && typeof worksheet[address8].v === 'number') {
+                        worksheet[address8].v = worksheet[address8].v.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        worksheet[address8].t = 's';
+                    }
+                }
+            }
+
+            const workbook = window.XLSX.utils.book_new();
+            window.XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+            window.XLSX.writeFile(workbook, "data_export.xlsx");
+        }
+    </script>
+</body>
+
+</html>
