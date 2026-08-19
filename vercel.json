@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/Web_Transaction_K-Cash.html" }
+  ]
+}
